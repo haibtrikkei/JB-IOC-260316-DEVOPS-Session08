@@ -1,0 +1,35 @@
+
+services:
+  catepro-backend:
+    image: ghcr.io/haibtrikkei/catepro-backend:${IMAGE_TAG:-latest}
+    container_name: catepro-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://catepro-db:5432/catepro_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234$
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      catepro-db:
+        condition: service_healthy
+
+  catepro-db:
+    image: postgres:17-alpine
+    container_name: catepro-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234$
+      POSTGRES_DB: catepro_db
+    volumes:
+      - catepro-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d catepro_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  catepro-db-data:
